@@ -142,11 +142,13 @@ trigger_build () {
 get_build_status () {
     local response=""
     local counter=0
-    local retry=3
+    local retry=5
     local polling_interval=30
+    local expo_backoff=0
     while [ "${build_status}" = 0 ]; do
         if [ -z "${TESTING_ENABLED}" ]; then
-            sleep "$polling_interval"
+            expo_backoff = $((($counter+1) * $polling_interval))
+            sleep "$expo_backoff"
             local command="curl --silent -X GET -w \"status_code:%{http_code}\" https://api.bitrise.io/v0.1/apps/$PROJECT_SLUG/builds/$build_slug \
                 --header 'Accept: application/json' --header 'Authorization: $ACCESS_TOKEN'"
             response=$(eval "${command}")
